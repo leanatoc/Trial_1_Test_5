@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using NUnit.Framework;
 using OpenQA.Selenium;
@@ -10,6 +10,7 @@ namespace Lea_test
 	[TestFixture]
 	public class TestLea
 	{
+		private double total;
 
 		[Test]
 		public void Test_SauceDemo()
@@ -44,30 +45,28 @@ namespace Lea_test
 			//Step 7
 			driver.FindElement(By.XPath("(//button[contains(.,'REMOVE')])[1]")).Click();
 
-			//Step 8
-			driver.FindElement(By.XPath("//a[contains(.,'CHECKOUT')]")).Click();
-			driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(10);
-
-			//Step 9
-			driver.FindElement(By.Id("first-name")).SendKeys("Lea");
-			driver.FindElement(By.Id("last-name")).SendKeys("Natoc");
-			driver.FindElement(By.Id("postal-code")).SendKeys("1200");
-
-			//Step 10
-			driver.FindElement(By.XPath("//input[@value='CONTINUE']")).Click();
-
-
-			//Step 11-13 Comparing Values
+			//Step 8-13
 			IList<IWebElement> list = driver.FindElements(By.XPath("//div[@class = 'inventory_item_price']"));
-			foreach (var item in list)
+			double sum = 0.00;
+			for (int x = 0; x <= list.Count() - 1; x++)
 			{
-				Console.WriteLine(item.Text);
+				sum += Convert.ToDouble(list[x].Text);
 			}
 
-			var value = driver.FindElement(By.XPath("//div[@class='summary_subtotal_label']"));
-			Assert.IsTrue(value.Displayed);
-			Assert.AreEqual(value.Text.ToLower(),actual: "Item total: $33.97".ToLower());
+			Console.WriteLine("The total is: " + sum.ToString());
 
+			driver.FindElement(By.XPath("//a[text() = 'CHECKOUT']")).Click();
+
+			driver.FindElement(By.XPath("//input[@id = 'first-name']")).SendKeys("Lea");
+			driver.FindElement(By.XPath("//input[@id = 'last-name']")).SendKeys("Natoc");
+			driver.FindElement(By.XPath("//input[@id = 'postal-code']")).SendKeys("1700");
+			driver.FindElement(By.XPath("//input[@type = 'submit']")).Click();
+
+			Assert.AreEqual(sum, Convert.ToDouble(driver.FindElement(By.XPath("//div[@class = 'summary_subtotal_label']")).Text.Trim().Split('$').Last()), "The totals are not equal");
+
+			Convert.ToDouble(driver.FindElement(By.XPath("//div[@class = 'summary_tax_label']")).Text.Trim().Split('$').Last());
+			total = sum + Convert.ToDouble(driver.FindElement(By.XPath("//div[@class = 'summary_tax_label']")).Text.Trim().Split('$').Last());
+			Convert.ToDouble(driver.FindElement(By.XPath("//div[@class = 'summary_total_label']")).Text.Trim().Split('$').Last());
 		}
 	}
 }
